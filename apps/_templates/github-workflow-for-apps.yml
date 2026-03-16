@@ -1,7 +1,7 @@
 # ============================================================
 # .github/workflows/deploy.yml
 #
-# Copia este archivo a CADA uno de tus repos de app.
+# Copia este archivo a CADA uno de tus repos de app.ssh root@104.248.126.117
 # Solo tienes que cambiar:
 #   1. app_name → el nombre que pusiste en apps.yml
 #   2. TU-USUARIO → tu usuario de GitHub

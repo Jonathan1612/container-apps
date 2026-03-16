@@ -69,6 +69,7 @@ docker network create proxy 2>/dev/null || echo "   La red 'proxy' ya existe."
 
 # ── 6. Preparar acme.json para Let's Encrypt ──────────────
 echo "[6/7] Preparando almacenamiento de certificados SSL..."
+mkdir -p "$INSTALL_DIR/traefik"
 touch "$INSTALL_DIR/traefik/acme.json"
 chmod 600 "$INSTALL_DIR/traefik/acme.json"
 echo "   acme.json creado con permisos 600."
