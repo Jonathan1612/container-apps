@@ -10,6 +10,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    command:
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
     environment:
       - ACME_EMAIL=${ACME_EMAIL}
       - DOCKER_API_VERSION=1.41

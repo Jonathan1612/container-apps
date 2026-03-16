@@ -36,7 +36,6 @@ providers:
 certificatesResolvers:
   letsencrypt:
     acme:
-      email: ${ACME_EMAIL}    # Variable de entorno inyectada por docker-compose
       storage: /acme.json
       httpChallenge:
         entryPoint: http      # Usa el challenge HTTP (puerto 80)
