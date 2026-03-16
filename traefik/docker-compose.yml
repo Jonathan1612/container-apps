@@ -12,6 +12,7 @@ services:
       - "443:443"
     environment:
       - ACME_EMAIL=${ACME_EMAIL}
+      - DOCKER_API_VERSION=1.41
     volumes:
       - /etc/localtime:/etc/localtime:ro
       # Socket de Docker en solo lectura para mayor seguridad
