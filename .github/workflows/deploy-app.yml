@@ -1,0 +1,59 @@
+name: Deploy app (reusable)
+# ============================================================
+# Workflow reutilizable — llámalo desde cualquier repo de app
+#
+# En tu repo de app, crea .github/workflows/deploy.yml con:
+#
+#   jobs:
+#     deploy:
+#       uses: TU-USUARIO/container-apps/.github/workflows/deploy-app.yml@main
+#       with:
+#         app_name: mi-api          # nombre en apps.yml
+#       secrets: inherit
+# ============================================================
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        description: 'Nombre de la app (debe coincidir con apps.yml)'
+        required: true
+        type: string
+      branch:
+        description: 'Rama a desplegar'
+        required: false
+        type: string
+        default: 'main'
+    secrets:
+      DO_HOST:
+        required: true
+      DO_USER:
+        required: true
+      DO_SSH_KEY:
+        required: true
+      DO_PORT:
+        required: false
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.app_name }} en DigitalOcean
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          port: ${{ secrets.DO_PORT || 22 }}
+          script: |
+            set -e
+            cd /opt/container-apps
+
+            # Actualizar la infraestructura (por si apps.yml cambió)
+            git pull origin main
+
+            # Desplegar solo esta app
+            bash scripts/deploy.sh app "${{ inputs.app_name }}"

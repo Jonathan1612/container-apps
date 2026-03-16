@@ -1,0 +1,56 @@
+services:
+  # ── Cambia TODAS las ocurrencias de "mi-app" por el nombre real de tu app ──
+  mi-app:
+    build: .
+    container_name: mi-app
+    restart: unless-stopped
+    networks:
+      - proxy
+
+    # ── Variables de entorno de tu app ─────────────────────
+    # Opción A: directamente aquí (para valores no secretos)
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # - DATABASE_URL=...  ← NO metas secretos aquí, usa env_file
+
+    # Opción B: desde un archivo .env local (NO commitear a git)
+    # env_file:
+    #   - .env
+
+    # ── Volúmenes (opcional) ────────────────────────────────
+    # Útil para persistir datos o subidas de archivos
+    # volumes:
+    #   - mi-app-uploads:/app/uploads
+
+    labels:
+      - "traefik.enable=true"
+
+      # ── Router HTTP (redirige a HTTPS) ──────────────────
+      - "traefik.http.routers.mi-app-http.entrypoints=http"
+      - "traefik.http.routers.mi-app-http.rule=Host(`mi-app.${DOMAIN}`)"
+      - "traefik.http.routers.mi-app-http.middlewares=https-redirect@file"
+
+      # ── Router HTTPS (con SSL automático) ───────────────
+      - "traefik.http.routers.mi-app.entrypoints=https"
+      - "traefik.http.routers.mi-app.rule=Host(`mi-app.${DOMAIN}`)"
+      - "traefik.http.routers.mi-app.tls=true"
+      - "traefik.http.routers.mi-app.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mi-app.middlewares=secure-headers@file,rate-limit@file"
+
+      # ── Puerto interno del contenedor ───────────────────
+      # Cambia 3000 por el puerto que usa tu app
+      - "traefik.http.services.mi-app.loadbalancer.server.port=3000"
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# volumes:
+#   mi-app-uploads:
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,31 @@
+# Variables de entorno (contienen secretos)
+.env
+
+# Certificados SSL de Let's Encrypt (se generan en el servidor)
+traefik/acme.json
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build
+dist/
+build/

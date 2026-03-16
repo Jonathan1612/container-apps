@@ -1,0 +1,37 @@
+# ============================================================
+# apps.yml — Registro de aplicaciones desplegadas
+#
+# Cada app vive en su PROPIO repositorio Git.
+# El servidor clona/actualiza cada repo de forma independiente.
+#
+# Para que cada app se despliegue automáticamente al hacer push:
+#   1. Agrega la app aquí (enabled: true)
+#   2. Copia apps/_templates/github-workflow-for-apps.yml
+#      a <tu-repo>/.github/workflows/deploy.yml
+#   3. Cambia app_name y TU-USUARIO en ese archivo
+#   4. Configura los secrets DO_HOST, DO_USER, DO_SSH_KEY en tu repo
+#      (o usa Organization Secrets si tienes GitHub Organization)
+#
+# Campos:
+#   name:    nombre del contenedor (debe coincidir con el workflow de la app)
+#   repo:    URL del repositorio Git
+#   branch:  rama a desplegar (default: main)
+#   enabled: true/false — false detiene el deploy sin borrar la entrada
+# ============================================================
+
+apps:
+  - name: hello-world
+    repo: https://github.com/TU-USUARIO/hello-world.git
+    branch: main
+    enabled: true
+
+  # Agrega tus apps aquí:
+  # - name: mi-api
+  #   repo: https://github.com/TU-USUARIO/mi-api.git
+  #   branch: main
+  #   enabled: true
+
+  # - name: mi-frontend
+  #   repo: https://github.com/TU-USUARIO/mi-frontend.git
+  #   branch: main
+  #   enabled: true

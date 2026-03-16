@@ -1,0 +1,32 @@
+http:
+  middlewares:
+
+    # Redirección HTTP → HTTPS
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    # Cabeceras de seguridad (aplica a todas las apps)
+    secure-headers:
+      headers:
+        stsSeconds: 63072000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        permissionsPolicy: "camera=(), microphone=(), geolocation=()"
+        customFrameOptionsValue: "SAMEORIGIN"
+
+    # Rate limiting — protección contra abuso
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1s
+
+    # Compresión gzip
+    compress:
+      compress: {}

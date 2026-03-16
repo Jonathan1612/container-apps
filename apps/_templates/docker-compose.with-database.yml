@@ -1,0 +1,54 @@
+services:
+  # ── Tu aplicación ───────────────────────────────────────
+  mi-app-db:
+    build: .
+    container_name: mi-app-db
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy  # Espera a que la DB esté lista
+    networks:
+      - proxy
+      - internal  # Red privada solo para comunicarse con la DB
+    env_file:
+      - .env      # Archivo .env LOCAL (gitignored), contiene DATABASE_URL etc.
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mi-app-db-http.entrypoints=http"
+      - "traefik.http.routers.mi-app-db-http.rule=Host(`mi-app.${DOMAIN}`)"
+      - "traefik.http.routers.mi-app-db-http.middlewares=https-redirect@file"
+      - "traefik.http.routers.mi-app-db.entrypoints=https"
+      - "traefik.http.routers.mi-app-db.rule=Host(`mi-app.${DOMAIN}`)"
+      - "traefik.http.routers.mi-app-db.tls=true"
+      - "traefik.http.routers.mi-app-db.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mi-app-db.middlewares=secure-headers@file,rate-limit@file"
+      - "traefik.http.services.mi-app-db.loadbalancer.server.port=3000"
+      # La DB NO se expone a Traefik → solo accesible internamente
+
+  # ── Base de datos PostgreSQL ────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: mi-app-postgres
+    restart: unless-stopped
+    networks:
+      - internal  # Solo red interna, NO expuesta al exterior
+    environment:
+      POSTGRES_DB: ${DB_NAME:-miapp}
+      POSTGRES_USER: ${DB_USER:-miapp}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?La variable DB_PASSWORD es obligatoria}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-miapp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:  # El dato persiste aunque recrees el contenedor
+
+networks:
+  proxy:
+    external: true   # Red compartida con Traefik
+  internal:
+    internal: true   # Red privada: solo los contenedores de esta app

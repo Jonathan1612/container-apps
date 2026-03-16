@@ -1,0 +1,49 @@
+# ============================================================
+# Traefik v3 — Configuración estática
+# ============================================================
+
+api:
+  dashboard: true
+  insecure: false
+
+# Puntos de entrada de red
+entryPoints:
+  http:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: https
+          scheme: https
+          permanent: true
+  https:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+
+# Proveedor Docker — detecta contenedores automáticamente
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false   # Solo expone contenedores con label traefik.enable=true
+    network: proxy
+  file:
+    directory: /config        # Configuración dinámica (middlewares, etc.)
+    watch: true
+
+# Certificados SSL automáticos con Let's Encrypt
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: ${ACME_EMAIL}    # Variable de entorno inyectada por docker-compose
+      storage: /acme.json
+      httpChallenge:
+        entryPoint: http      # Usa el challenge HTTP (puerto 80)
+
+# Logs
+log:
+  level: INFO
+
+accessLog:
+  filePath: ""                # Logs de acceso en stdout

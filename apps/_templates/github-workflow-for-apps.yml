@@ -1,0 +1,30 @@
+# ============================================================
+# .github/workflows/deploy.yml
+#
+# Copia este archivo a CADA uno de tus repos de app.
+# Solo tienes que cambiar:
+#   1. app_name → el nombre que pusiste en apps.yml
+#   2. TU-USUARIO → tu usuario de GitHub
+#
+# Los secretos DO_HOST, DO_USER, DO_SSH_KEY se configuran
+# UNA SOLA VEZ en el repo container-apps como "Organization secrets"
+# o se heredan si usas una organización de GitHub.
+#
+# Si usas repos personales, configura los mismos secrets también
+# en este repo: Settings → Secrets and variables → Actions
+# ============================================================
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main        # Cambia si tu rama principal es otra (master, production, etc.)
+  workflow_dispatch: # Permite disparar el deploy manualmente desde GitHub UI
+
+jobs:
+  deploy:
+    # Llama al workflow reutilizable de container-apps
+    uses: TU-USUARIO/container-apps/.github/workflows/deploy-app.yml@main
+    with:
+      app_name: NOMBRE-DE-TU-APP    # ← Cambia esto (debe coincidir con apps.yml)
+    secrets: inherit

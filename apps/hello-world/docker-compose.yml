@@ -1,0 +1,31 @@
+services:
+  hello-world:
+    build: .
+    container_name: hello-world
+    restart: unless-stopped
+    networks:
+      - proxy
+    environment:
+      - APP_NAME=hello-world
+      - PORT=3000
+    labels:
+      - "traefik.enable=true"
+      # Cambia "hello" por el subdominio que quieras: hello.tudominio.com
+      - "traefik.http.routers.hello-world-http.entrypoints=http"
+      - "traefik.http.routers.hello-world-http.rule=Host(`hello.${DOMAIN}`)"
+      - "traefik.http.routers.hello-world-http.middlewares=https-redirect@file"
+      - "traefik.http.routers.hello-world.entrypoints=https"
+      - "traefik.http.routers.hello-world.rule=Host(`hello.${DOMAIN}`)"
+      - "traefik.http.routers.hello-world.tls=true"
+      - "traefik.http.routers.hello-world.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.hello-world.middlewares=secure-headers@file,rate-limit@file"
+      - "traefik.http.services.hello-world.loadbalancer.server.port=3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  proxy:
+    external: true

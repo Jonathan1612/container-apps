@@ -1,0 +1,131 @@
+name: Deploy a DigitalOcean
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'traefik/**'
+      - 'portainer/**'
+      - 'apps.yml'          # Cambiar el registro de apps dispara el deploy
+      - 'scripts/**'
+  # Permite disparar el deploy manualmente desde la UI de GitHub
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Qué desplegar (all / traefik / portainer / apps / app <nombre>)'
+        required: false
+        default: 'all'
+
+jobs:
+  # ── Detectar qué cambió ──────────────────────────────────
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      traefik: ${{ steps.filter.outputs.traefik }}
+      portainer: ${{ steps.filter.outputs.portainer }}
+      apps: ${{ steps.filter.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            traefik:
+              - 'traefik/**'
+            portainer:
+              - 'portainer/**'
+            apps:
+              - 'apps.yml'
+              - 'scripts/deploy.sh'
+
+  # ── Desplegar infraestructura (Traefik / Portainer) ──────
+  deploy-infrastructure:
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.traefik == 'true' ||
+      needs.detect-changes.outputs.portainer == 'true' ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Deploy infraestructura en el servidor
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          port: ${{ secrets.DO_PORT || 22 }}
+          script: |
+            set -e
+            cd /opt/container-apps
+            git pull origin main
+
+            TARGET="${{ github.event.inputs.target || 'infrastructure' }}"
+
+            if [ "${{ needs.detect-changes.outputs.traefik }}" == "true" ] || [ "$TARGET" == "traefik" ] || [ "$TARGET" == "all" ]; then
+              echo "→ Actualizando Traefik..."
+              docker compose --project-directory /opt/container-apps \
+                -f traefik/docker-compose.yml up -d
+            fi
+
+            if [ "${{ needs.detect-changes.outputs.portainer }}" == "true" ] || [ "$TARGET" == "portainer" ] || [ "$TARGET" == "all" ]; then
+              echo "→ Actualizando Portainer..."
+              docker compose --project-directory /opt/container-apps \
+                -f portainer/docker-compose.yml up -d
+            fi
+
+  # ── Desplegar aplicaciones ───────────────────────────────
+  deploy-apps:
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.apps == 'true' ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # Necesario para comparar cambios
+
+      - name: Deploy apps en el servidor
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          port: ${{ secrets.DO_PORT || 22 }}
+          script: |
+            set -e
+            cd /opt/container-apps
+            git pull origin main
+
+            TARGET="${{ github.event.inputs.target || 'apps' }}"
+
+            # Si es un app específica via workflow_dispatch: "app mi-api"
+            if [[ "$TARGET" == app\ * ]]; then
+              APP_NAME="${TARGET#app }"
+              bash scripts/deploy.sh app "$APP_NAME"
+            else
+              # Lee apps.yml y despliega/actualiza cada repo externo
+              bash scripts/deploy.sh apps
+            fi
+
+  # ── Notificación de resultado ────────────────────────────
+  notify:
+    needs: [deploy-infrastructure, deploy-apps]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resumen del deploy
+        run: |
+          if [ "${{ needs.deploy-infrastructure.result }}" == "failure" ] || \
+             [ "${{ needs.deploy-apps.result }}" == "failure" ]; then
+            echo "❌ Deploy FALLÓ. Revisa los logs arriba."
+            exit 1
+          else
+            echo "✅ Deploy completado exitosamente."
+          fi

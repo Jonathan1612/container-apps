@@ -1,0 +1,42 @@
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - ACME_EMAIL=${ACME_EMAIL}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      # Socket de Docker en solo lectura para mayor seguridad
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/traefik.yml:ro
+      - ./config:/config:ro
+      # Almacenamiento de certificados Let's Encrypt
+      # IMPORTANTE: crear con: touch traefik/acme.json && chmod 600 traefik/acme.json
+      - ./acme.json:/acme.json
+    labels:
+      - "traefik.enable=true"
+      # Router HTTP → redirige a HTTPS
+      - "traefik.http.routers.traefik-http.entrypoints=http"
+      - "traefik.http.routers.traefik-http.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.traefik-http.middlewares=https-redirect@file"
+      # Router HTTPS → Dashboard con autenticación básica
+      - "traefik.http.routers.traefik-secure.entrypoints=https"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+      - "traefik.http.routers.traefik-secure.middlewares=dashboard-auth"
+      # Middleware de autenticación para el dashboard
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH}"
+
+networks:
+  proxy:
+    external: true
