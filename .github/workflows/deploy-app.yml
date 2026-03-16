@@ -6,10 +6,13 @@ name: Deploy app (reusable)
 #
 #   jobs:
 #     deploy:
-#       uses: TU-USUARIO/container-apps/.github/workflows/deploy-app.yml@main
+#       uses: Jonathan1612/container-apps/.github/workflows/deploy-app.yml@dev
 #       with:
 #         app_name: mi-api          # nombre en apps.yml
 #       secrets: inherit
+#
+# Secrets necesarios en el repo de la app:
+#   DO_HOST, DO_USER, DO_SSH_KEY — credenciales SSH del servidor
 # ============================================================
 
 on:
@@ -35,9 +38,38 @@ on:
         required: false
 
 jobs:
-  deploy:
-    name: Deploy ${{ inputs.app_name }} en DigitalOcean
+  build-and-push:
+    name: Build y push imágenes a ghcr.io
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout del repo de la app
+        uses: actions/checkout@v4
+
+      - name: Login a GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build y push imágenes
+        run: |
+          docker compose build
+          # Tag y push de cada imagen al registry
+          for image in $(docker compose config --images 2>/dev/null | grep -v "^#"); do
+            repo_image="ghcr.io/${{ github.repository_owner }}/$(basename $image):latest"
+            docker tag "$image" "$repo_image"
+            docker push "$repo_image"
+          done
+
+  deploy:
+    name: Deploy ${{ inputs.app_name }} en servidor
+    runs-on: ubuntu-latest
+    needs: build-and-push
     environment: production
 
     steps:
@@ -50,10 +82,12 @@ jobs:
           port: ${{ secrets.DO_PORT || 22 }}
           script: |
             set -e
-            cd /opt/container-apps
+            # Login al registry para poder hacer pull
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Actualizar la infraestructura (por si apps.yml cambió)
-            git pull origin main
+            cd /opt/apps/${{ inputs.app_name }}
+            git pull origin ${{ inputs.branch }}
 
-            # Desplegar solo esta app
-            bash scripts/deploy.sh app "${{ inputs.app_name }}"
+            # Pull de imágenes pre-compiladas y levantar sin rebuild
+            docker compose pull
+            docker compose up -d --no-build
