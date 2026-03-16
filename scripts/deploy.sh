@@ -101,8 +101,12 @@ sync_and_deploy_app() {
     fi
 
     echo "│  Construyendo y desplegando..."
-    # Carga las variables del .env global del servidor
-    docker compose --env-file "$INSTALL_DIR/.env" \
+    # Usa el .env de la app si existe, si no el global
+    local env_file="$app_dir/.env"
+    if [ ! -f "$env_file" ]; then
+        env_file="$INSTALL_DIR/.env"
+    fi
+    docker compose --env-file "$env_file" \
         -f "$app_dir/docker-compose.yml" \
         up -d --build
 
@@ -143,7 +147,7 @@ deploy_all_apps() {
 # ── Pull del repositorio de infraestructura ────────────────
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Iniciando deploy..."
 cd "$INSTALL_DIR"
-git pull origin main
+git pull origin "$(git rev-parse --abbrev-ref HEAD)"
 
 # ── Ejecutar deploy según argumentos ──────────────────────
 TARGET="${1:-all}"
