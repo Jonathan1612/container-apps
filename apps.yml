@@ -25,13 +25,7 @@ apps:
     branch: main
     enabled: true
 
-  # Agrega tus apps aquí:
-  # - name: mi-api
-  #   repo: https://github.com/TU-USUARIO/mi-api.git
-  #   branch: main
-  #   enabled: true
-
-  # - name: mi-frontend
-  #   repo: https://github.com/TU-USUARIO/mi-frontend.git
-  #   branch: main
-  #   enabled: true
+  - name: plantillas-app
+    repo: git@github.com:Jonathan1612/plantillas-app.git
+    branch: dev
+    enabled: true
