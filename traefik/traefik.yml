@@ -37,8 +37,7 @@ certificatesResolvers:
   letsencrypt:
     acme:
       storage: /acme.json
-      httpChallenge:
-        entryPoint: http      # Usa el challenge HTTP (puerto 80)
+      tlsChallenge: {}         # Challenge TLS en puerto 443 (evita conflicto con redirect HTTP→HTTPS)
 
 # Logs
 log:
