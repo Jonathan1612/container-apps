@@ -108,7 +108,7 @@ sync_and_deploy_app() {
     fi
     docker compose --env-file "$env_file" \
         -f "$app_dir/docker-compose.yml" \
-        up -d --build
+        up -d --build --remove-orphans --force-recreate
 
     echo "└─ $name desplegado correctamente"
 }
