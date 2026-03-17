@@ -31,6 +31,6 @@ apps:
     enabled: true
 
   - name: jacm-portfolio
-    repo: git@github.com:Jonathan1612/jacm-portfolio.git
+    repo: git@github.com:Jonathan1612/jacm-portafolio.git
     branch: main
     enabled: true
