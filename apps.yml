@@ -23,7 +23,7 @@ apps:
   - name: hello-world
     repo: https://github.com/TU-USUARIO/hello-world.git
     branch: main
-    enabled: true
+    enabled: false
 
   - name: plantillas-app
     repo: git@github.com:Jonathan1612/plantillas-app.git
