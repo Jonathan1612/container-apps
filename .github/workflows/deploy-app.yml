@@ -85,8 +85,18 @@ jobs:
             # Login al registry para poder hacer pull
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            cd /opt/apps/${{ inputs.app_name }}
-            git pull origin ${{ inputs.branch }}
+            APP_DIR="/opt/apps/${{ inputs.app_name }}"
+
+            # Clonar si no existe, actualizar si ya existe
+            if [ ! -d "$APP_DIR" ]; then
+              mkdir -p /opt/apps
+              git clone --branch ${{ inputs.branch }} https://github.com/${{ github.repository }}.git "$APP_DIR"
+            else
+              cd "$APP_DIR"
+              git pull origin ${{ inputs.branch }}
+            fi
+
+            cd "$APP_DIR"
 
             # Pull de imágenes pre-compiladas y levantar sin rebuild
             docker compose pull
