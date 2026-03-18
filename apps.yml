@@ -34,3 +34,8 @@ apps:
     repo: git@github.com:Jonathan1612/jacm-portafolio.git
     branch: main
     enabled: true
+
+  - name: jacm-time-record
+    repo: git@github.com:Jonathan1612/jacm-time-record.git
+    branch: main
+    enabled: true
