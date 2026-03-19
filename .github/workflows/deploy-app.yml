@@ -27,6 +27,16 @@ on:
         required: false
         type: string
         default: 'main'
+      frontend_domain:
+        description: 'Dominio del frontend (ej: time.jacm.com.mx)'
+        required: false
+        type: string
+        default: ''
+      backend_domain:
+        description: 'Dominio del backend/API (ej: time-api.jacm.com.mx)'
+        required: false
+        type: string
+        default: ''
     secrets:
       DO_HOST:
         required: true
@@ -57,6 +67,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build y push imágenes
+        env:
+          FRONTEND_DOMAIN: ${{ inputs.frontend_domain }}
+          BACKEND_DOMAIN: ${{ inputs.backend_domain }}
         run: |
           # Las imágenes ya tienen el nombre completo definido en docker-compose.yml
           # docker compose build + push usa esos nombres directamente
