@@ -46,6 +46,8 @@ on:
         required: true
       DO_PORT:
         required: false
+      JWT_SECRET:
+        required: false
 
 jobs:
   build-and-push:
@@ -108,6 +110,13 @@ jobs:
 
             cd "$APP_DIR"
 
+            # Crear/actualizar .env con las variables de dominio y secretos
+            {
+              [ -n "${{ inputs.frontend_domain }}" ] && echo "FRONTEND_DOMAIN=${{ inputs.frontend_domain }}"
+              [ -n "${{ inputs.backend_domain }}" ]  && echo "BACKEND_DOMAIN=${{ inputs.backend_domain }}"
+              [ -n "${{ secrets.JWT_SECRET }}" ]     && echo "JWT_SECRET=${{ secrets.JWT_SECRET }}"
+            } > "$APP_DIR/.env"
+
             # Pull de imágenes pre-compiladas y levantar sin rebuild
-            docker compose pull
-            docker compose up -d --no-build
+            docker compose --env-file "$APP_DIR/.env" pull
+            docker compose --env-file "$APP_DIR/.env" up -d --no-build --force-recreate --remove-orphans

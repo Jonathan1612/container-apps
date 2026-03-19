@@ -101,14 +101,28 @@ sync_and_deploy_app() {
     fi
 
     echo "│  Construyendo y desplegando..."
-    # Usa el .env de la app si existe, si no el global
+    # Arma los args de env-file solo si el archivo existe
+    local compose_env_args=()
     local env_file="$app_dir/.env"
     if [ ! -f "$env_file" ]; then
         env_file="$INSTALL_DIR/.env"
     fi
-    docker compose --env-file "$env_file" \
+    if [ -f "$env_file" ]; then
+        compose_env_args=("--env-file" "$env_file")
+    fi
+
+    # Pull de imágenes pre-compiladas; si no existen en registry, build local
+    if docker compose "${compose_env_args[@]}" \
         -f "$app_dir/docker-compose.yml" \
-        up -d --build --remove-orphans --force-recreate
+        pull --quiet 2>/dev/null; then
+        docker compose "${compose_env_args[@]}" \
+            -f "$app_dir/docker-compose.yml" \
+            up -d --no-build --remove-orphans --force-recreate
+    else
+        docker compose "${compose_env_args[@]}" \
+            -f "$app_dir/docker-compose.yml" \
+            up -d --build --remove-orphans --force-recreate
+    fi
 
     echo "└─ $name desplegado correctamente"
 }
