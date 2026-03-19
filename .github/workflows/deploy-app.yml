@@ -58,13 +58,10 @@ jobs:
 
       - name: Build y push imágenes
         run: |
+          # Las imágenes ya tienen el nombre completo definido en docker-compose.yml
+          # docker compose build + push usa esos nombres directamente
           docker compose build
-          # Tag y push de cada imagen al registry
-          for image in $(docker compose config --images 2>/dev/null | grep -v "^#"); do
-            repo_image="ghcr.io/${{ github.repository_owner }}/$(basename $image):latest"
-            docker tag "$image" "$repo_image"
-            docker push "$repo_image"
-          done
+          docker compose push
 
   deploy:
     name: Deploy ${{ inputs.app_name }} en servidor
