@@ -9,7 +9,6 @@ on:
       - 'traefik/**'
       - 'portainer/**'
       - 'apps.yml'          # Cambiar el registro de apps dispara el deploy
-      - 'scripts/**'
   # Permite disparar el deploy manualmente desde la UI de GitHub
   workflow_dispatch:
     inputs:
@@ -39,7 +38,6 @@ jobs:
               - 'portainer/**'
             apps:
               - 'apps.yml'
-              - 'scripts/deploy.sh'
 
   # ── Desplegar infraestructura (Traefik / Portainer) ──────
   deploy-infrastructure:
