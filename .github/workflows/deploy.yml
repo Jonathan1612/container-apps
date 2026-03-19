@@ -99,10 +99,7 @@ jobs:
           username: ${{ secrets.DO_USER }}
           key: ${{ secrets.DO_SSH_KEY }}
           port: ${{ secrets.DO_PORT || 22 }}
-          command_timeout: 30m
           script: |
-            # Autenticar en ghcr.io para poder hacer pull de imágenes pre-compiladas
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin 2>/dev/null || true
             set -e
             cd /opt/container-apps
             git pull origin dev
