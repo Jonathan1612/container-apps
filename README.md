@@ -18,6 +18,15 @@ Servidor personal que funciona como una plataforma tipo Heroku: despliega múlti
 └────────────────────────────────────────────────────────────┘
 ```
 
+---
+
+## 📋 Documentación
+
+- **[Apps Desplegadas](DEPLOYED_APPS.md)** - Lista completa de aplicaciones activas con URLs, tecnologías y estado
+- **[Medidas de Seguridad](../SECURITY_MEASURES.md)** - Guía de seguridad post-incidente y mejores prácticas
+
+---
+
 ## Stack
 
 | Componente | Función | URL |

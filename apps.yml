@@ -17,6 +17,8 @@
 #   repo:    URL del repositorio Git
 #   branch:  rama a desplegar (default: main)
 #   enabled: true/false — false detiene el deploy sin borrar la entrada
+#
+# 📋 Ver detalles completos de apps desplegadas: DEPLOYED_APPS.md
 # ============================================================
 
 apps:
@@ -24,18 +26,26 @@ apps:
     repo: https://github.com/TU-USUARIO/hello-world.git
     branch: main
     enabled: false
+    # URL: no configurada
 
   - name: plantillas-app
     repo: git@github.com:Jonathan1612/plantillas-app.git
     branch: dev
     enabled: true
+    # URLs: 
+    #   Frontend: https://plantillas.jacm.com.mx
+    #   Backend:  https://api.plantillas.jacm.com.mx
 
   - name: jacm-portafolio
     repo: git@github.com:Jonathan1612/jacm-portafolio.git
     branch: main
     enabled: true
+    # URL: https://jacm.com.mx
 
   - name: jacm-time-record
     repo: git@github.com:Jonathan1612/jacm-time-record.git
     branch: main
     enabled: true
+    # URLs: 
+    #   Frontend: https://time.jacm.com.mx
+    #   Backend:  https://time-api.jacm.com.mx
