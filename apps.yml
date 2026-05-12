@@ -49,3 +49,11 @@ apps:
     # URLs: 
     #   Frontend: https://time.jacm.com.mx
     #   Backend:  https://time-api.jacm.com.mx
+
+  - name: support-ticket-system
+    repo: git@github.com:Jonathan1612/support-ticket-system.git
+    branch: main
+    enabled: true
+    # URLs: 
+    #   Frontend: https://tickets.jacm.com.mx
+    #   Backend:  https://tickets-api.jacm.com.mx
