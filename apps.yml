@@ -22,12 +22,6 @@
 # ============================================================
 
 apps:
-  - name: hello-world
-    repo: https://github.com/TU-USUARIO/hello-world.git
-    branch: main
-    enabled: false
-    # URL: no configurada
-
   - name: plantillas-app
     repo: git@github.com:Jonathan1612/plantillas-app.git
     branch: dev
@@ -49,6 +43,12 @@ apps:
     # URLs: 
     #   Frontend: https://time.jacm.com.mx
     #   Backend:  https://time-api.jacm.com.mx
+
+  - name: documentacion-lenguajes
+    repo: git@github.com:Jonathan1612/documentacion-lenguajes.git
+    branch: main
+    enabled: true
+    # URL: https://docs.jacm.com.mx
 
   - name: support-ticket-system
     repo: git@github.com:Jonathan1612/support-ticket-system.git
