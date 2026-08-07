@@ -8,7 +8,9 @@ on:
     paths:
       - 'traefik/**'
       - 'portainer/**'
-      - 'apps.yml'          # Cambiar el registro de apps dispara el deploy
+      - 'apps.yml'
+      - 'scripts/**'
+      - '.github/workflows/**'
   # Permite disparar el deploy manualmente desde la UI de GitHub
   workflow_dispatch:
     inputs:
@@ -25,6 +27,8 @@ jobs:
       traefik: ${{ steps.filter.outputs.traefik }}
       portainer: ${{ steps.filter.outputs.portainer }}
       apps: ${{ steps.filter.outputs.apps }}
+      scripts: ${{ steps.filter.outputs.scripts }}
+      workflows: ${{ steps.filter.outputs.workflows }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,6 +42,10 @@ jobs:
               - 'portainer/**'
             apps:
               - 'apps.yml'
+            scripts:
+              - 'scripts/**'
+            workflows:
+              - '.github/workflows/**'
 
   # ── Desplegar infraestructura (Traefik / Portainer) ──────
   deploy-infrastructure:
@@ -82,6 +90,8 @@ jobs:
     needs: detect-changes
     if: |
       needs.detect-changes.outputs.apps == 'true' ||
+      needs.detect-changes.outputs.scripts == 'true' ||
+      needs.detect-changes.outputs.workflows == 'true' ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: production
@@ -106,6 +116,13 @@ jobs:
             git reset --hard origin/dev
 
             TARGET="${{ github.event.inputs.target || 'apps' }}"
+
+            # Solo cambios en scripts/workflows: sincronizar repo, sin redeploy masivo
+            if [ "${{ needs.detect-changes.outputs.apps }}" != "true" ] && \
+               [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+              echo "→ Solo cambios en scripts/workflows. Repo sincronizado."
+              exit 0
+            fi
 
             # Si es un app específica via workflow_dispatch: "app mi-api"
             if [[ "$TARGET" == app\ * ]]; then

@@ -19,6 +19,7 @@
 #   enabled: true/false — false detiene el deploy sin borrar la entrada
 #
 # 📋 Ver detalles completos de apps desplegadas: DEPLOYED_APPS.md
+# Última sincronización CI: 2026-08-07
 # ============================================================
 
 apps:
