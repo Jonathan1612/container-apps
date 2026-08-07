@@ -25,7 +25,7 @@ apps:
   - name: plantillas-app
     repo: git@github.com:Jonathan1612/plantillas-app.git
     branch: dev
-    enabled: true
+    enabled: false
     # URLs: 
     #   Frontend: https://plantillas.jacm.com.mx
     #   Backend:  https://api.plantillas.jacm.com.mx
@@ -47,13 +47,13 @@ apps:
   - name: documentacion-lenguajes
     repo: git@github.com:Jonathan1612/documentacion-lenguajes.git
     branch: main
-    enabled: true
+    enabled: false
     # URL: https://docs.jacm.com.mx
 
   - name: support-ticket-system
     repo: git@github.com:Jonathan1612/support-ticket-system.git
     branch: main
-    enabled: true
+    enabled: false
     # URLs: 
     #   Frontend: https://tickets.jacm.com.mx
     #   Backend:  https://tickets-api.jacm.com.mx

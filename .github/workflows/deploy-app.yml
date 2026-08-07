@@ -66,7 +66,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
 
       - name: Build y push imágenes
         env:
@@ -83,19 +83,64 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     environment: production
+    permissions:
+      contents: read
+      packages: read
 
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_TOKEN: ${{ github.token }}
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USER }}
           key: ${{ secrets.DO_SSH_KEY }}
           port: ${{ secrets.DO_PORT || 22 }}
+          envs: GHCR_TOKEN
           script: |
             set -e
-            # Login al registry para poder hacer pull
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Verificar que la app esté habilitada en apps.yml del servidor
+            ENABLED=$(python3 - <<'PYEOF'
+            import re, sys
+            app_name = "${{ inputs.app_name }}"
+            with open("/opt/container-apps/apps.yml") as f:
+                content = f.read()
+            apps = []
+            current = {}
+            for line in content.splitlines():
+                m = re.match(r'\s+-\s+name:\s+(.+)', line)
+                if m:
+                    if current:
+                        apps.append(current)
+                    current = {"name": m.group(1).strip()}
+                    continue
+                for key in ("enabled",):
+                    m = re.match(rf'\s+{key}:\s+(.+)', line)
+                    if m:
+                        current[key] = m.group(1).strip()
+            if current:
+                apps.append(current)
+            for app in apps:
+                if app.get("name") == app_name:
+                    print(app.get("enabled", "true").lower())
+                    break
+            else:
+                print("missing")
+            PYEOF
+            )
+            if [ "$ENABLED" = "false" ]; then
+              echo "⏭️  App '${{ inputs.app_name }}' está deshabilitada en apps.yml. Deploy omitido."
+              exit 0
+            fi
+            if [ "$ENABLED" = "missing" ]; then
+              echo "❌ App '${{ inputs.app_name }}' no está registrada en apps.yml."
+              exit 1
+            fi
+
+            # Login al registry para poder hacer pull (github.token, no secrets.GITHUB_TOKEN)
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             APP_DIR="/opt/apps/${{ inputs.app_name }}"
 
