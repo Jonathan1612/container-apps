@@ -147,7 +147,9 @@ deploy_all_apps() {
 # ── Pull del repositorio de infraestructura ────────────────
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Iniciando deploy..."
 cd "$INSTALL_DIR"
-git pull origin "$(git rev-parse --abbrev-ref HEAD)"
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+git fetch origin "$BRANCH"
+git reset --hard "origin/$BRANCH"
 
 # ── Ejecutar deploy según argumentos ──────────────────────
 TARGET="${1:-all}"

@@ -60,7 +60,8 @@ jobs:
           script: |
             set -e
             cd /opt/container-apps
-            git pull origin dev
+            git fetch origin dev
+            git reset --hard origin/dev
 
             TARGET="${{ github.event.inputs.target || 'infrastructure' }}"
 
@@ -101,7 +102,8 @@ jobs:
           script: |
             set -e
             cd /opt/container-apps
-            git pull origin dev
+            git fetch origin dev
+            git reset --hard origin/dev
 
             TARGET="${{ github.event.inputs.target || 'apps' }}"
 
