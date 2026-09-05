@@ -237,7 +237,8 @@ jobs:
               git clone --branch ${{ inputs.branch }} https://github.com/${{ github.repository }}.git "$APP_DIR"
             else
               cd "$APP_DIR"
-              git pull origin ${{ inputs.branch }}
+              git fetch origin ${{ inputs.branch }}
+              git reset --hard "origin/${{ inputs.branch }}"
             fi
 
             cd "$APP_DIR"
