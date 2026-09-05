@@ -11,8 +11,9 @@ name: Deploy app (reusable)
 #         app_name: mi-api          # nombre en apps.yml
 #       secrets: inherit
 #
-# Secrets necesarios en el repo de la app:
+# Secrets necesarios en el repo de la app (o Variables con los mismos nombres):
 #   DO_HOST, DO_USER, DO_SSH_KEY — credenciales SSH del servidor
+# Preferir Secrets para DO_SSH_KEY (la clave privada no debe ir en Variables).
 # ============================================================
 
 on:
@@ -44,11 +45,11 @@ on:
         default: false
     secrets:
       DO_HOST:
-        required: true
+        required: false
       DO_USER:
-        required: true
+        required: false
       DO_SSH_KEY:
-        required: true
+        required: false
       DO_PORT:
         required: false
       JWT_SECRET:
@@ -101,15 +102,35 @@ jobs:
       packages: read
 
     steps:
+      - name: Verify deploy credentials
+        run: |
+          missing=0
+          if [ -z "${{ secrets.DO_HOST || vars.DO_HOST }}" ]; then
+            echo "❌ DO_HOST no está en Secrets ni Variables del repo"
+            missing=1
+          fi
+          if [ -z "${{ secrets.DO_USER || vars.DO_USER }}" ]; then
+            echo "❌ DO_USER no está en Secrets ni Variables del repo"
+            missing=1
+          fi
+          if [ -z "${{ secrets.DO_SSH_KEY || vars.DO_SSH_KEY }}" ]; then
+            echo "❌ DO_SSH_KEY no está en Secrets ni Variables del repo"
+            missing=1
+          fi
+          if [ "$missing" -eq 1 ]; then
+            exit 1
+          fi
+          echo "✅ Credenciales de deploy encontradas (Secrets o Variables)"
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
           GHCR_TOKEN: ${{ github.token }}
         with:
-          host: ${{ secrets.DO_HOST }}
-          username: ${{ secrets.DO_USER }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          port: ${{ secrets.DO_PORT || 22 }}
+          host: ${{ secrets.DO_HOST || vars.DO_HOST }}
+          username: ${{ secrets.DO_USER || vars.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY || vars.DO_SSH_KEY }}
+          port: ${{ secrets.DO_PORT || vars.DO_PORT || 22 }}
           envs: GHCR_TOKEN
           script: |
             set -e
