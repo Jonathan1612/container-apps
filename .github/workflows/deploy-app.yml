@@ -43,6 +43,11 @@ on:
         required: false
         type: boolean
         default: false
+      mongo_required:
+        description: 'Fallar si MONGO_* no está configurado'
+        required: false
+        type: boolean
+        default: false
     secrets:
       DO_HOST:
         required: false
@@ -53,6 +58,24 @@ on:
       DO_PORT:
         required: false
       JWT_SECRET:
+        required: false
+      MONGO_ROOT_PASSWORD:
+        required: false
+      MONGO_APP_PASSWORD:
+        required: false
+      MONGO_ROOT_USERNAME:
+        required: false
+      MONGO_APP_USERNAME:
+        required: false
+      SPACES_ACCESS_KEY:
+        required: false
+      SPACES_SECRET_KEY:
+        required: false
+      SPACES_BUCKET:
+        required: false
+      SPACES_REGION:
+        required: false
+      SPACES_ENDPOINT:
         required: false
 
 jobs:
@@ -65,10 +88,18 @@ jobs:
 
     steps:
       - name: Verify required secrets
-        if: inputs.jwt_required
+        if: inputs.jwt_required || inputs.mongo_required
         run: |
-          if [ -z "${{ secrets.JWT_SECRET }}" ]; then
+          if [ "${{ inputs.jwt_required }}" = "true" ] && [ -z "${{ secrets.JWT_SECRET }}" ]; then
             echo "❌ JWT_SECRET es obligatorio para esta app pero no está configurado en GitHub Secrets."
+            exit 1
+          fi
+          if [ "${{ inputs.mongo_required }}" = "true" ] && [ -z "${{ secrets.MONGO_ROOT_PASSWORD }}" ]; then
+            echo "❌ MONGO_ROOT_PASSWORD es obligatorio pero no está configurado en GitHub Secrets."
+            exit 1
+          fi
+          if [ "${{ inputs.mongo_required }}" = "true" ] && [ -z "${{ secrets.MONGO_APP_PASSWORD }}" ]; then
+            echo "❌ MONGO_APP_PASSWORD es obligatorio pero no está configurado en GitHub Secrets."
             exit 1
           fi
 
@@ -139,6 +170,14 @@ jobs:
               echo "❌ JWT_SECRET es obligatorio para esta app pero no está configurado en GitHub Secrets."
               exit 1
             fi
+            if [ "${{ inputs.mongo_required }}" = "true" ] && [ -z "${{ secrets.MONGO_ROOT_PASSWORD }}" ]; then
+              echo "❌ MONGO_ROOT_PASSWORD es obligatorio pero no está configurado en GitHub Secrets."
+              exit 1
+            fi
+            if [ "${{ inputs.mongo_required }}" = "true" ] && [ -z "${{ secrets.MONGO_APP_PASSWORD }}" ]; then
+              echo "❌ MONGO_APP_PASSWORD es obligatorio pero no está configurado en GitHub Secrets."
+              exit 1
+            fi
 
             # Verificar que la app esté habilitada en apps.yml del servidor
             ENABLED=$(python3 - <<'PYEOF'
@@ -199,8 +238,31 @@ jobs:
               [ -n "${{ inputs.frontend_domain }}" ] && echo "FRONTEND_DOMAIN=${{ inputs.frontend_domain }}"
               [ -n "${{ inputs.backend_domain }}" ]  && echo "BACKEND_DOMAIN=${{ inputs.backend_domain }}"
               [ -n "${{ secrets.JWT_SECRET }}" ]     && echo "JWT_SECRET=${{ secrets.JWT_SECRET }}"
+              [ -n "${{ secrets.MONGO_ROOT_USERNAME }}" ] && echo "MONGO_ROOT_USERNAME=${{ secrets.MONGO_ROOT_USERNAME }}"
+              [ -n "${{ secrets.MONGO_ROOT_USERNAME }}" ] || echo "MONGO_ROOT_USERNAME=jacm_admin"
+              [ -n "${{ secrets.MONGO_APP_USERNAME }}" ]  && echo "MONGO_APP_USERNAME=${{ secrets.MONGO_APP_USERNAME }}"
+              [ -n "${{ secrets.MONGO_APP_USERNAME }}" ]  || echo "MONGO_APP_USERNAME=jacm_app"
+              [ -n "${{ secrets.MONGO_ROOT_PASSWORD }}" ] && echo "MONGO_ROOT_PASSWORD=${{ secrets.MONGO_ROOT_PASSWORD }}"
+              [ -n "${{ secrets.MONGO_APP_PASSWORD }}" ]  && echo "MONGO_APP_PASSWORD=${{ secrets.MONGO_APP_PASSWORD }}"
+              [ -n "${{ secrets.SPACES_ACCESS_KEY }}" ]   && echo "SPACES_ACCESS_KEY=${{ secrets.SPACES_ACCESS_KEY }}"
+              [ -n "${{ secrets.SPACES_SECRET_KEY }}" ]   && echo "SPACES_SECRET_KEY=${{ secrets.SPACES_SECRET_KEY }}"
+              [ -n "${{ secrets.SPACES_BUCKET }}" ]       && echo "SPACES_BUCKET=${{ secrets.SPACES_BUCKET }}"
+              [ -n "${{ secrets.SPACES_REGION }}" ]         && echo "SPACES_REGION=${{ secrets.SPACES_REGION }}"
+              [ -n "${{ secrets.SPACES_ENDPOINT }}" ]     && echo "SPACES_ENDPOINT=${{ secrets.SPACES_ENDPOINT }}"
             } > "$APP_DIR/.env"
 
-            # Pull de imágenes pre-compiladas y levantar sin rebuild
+            chmod +x "$APP_DIR/scripts/"*.sh 2>/dev/null || true
+
+            # Pull de imágenes pre-compiladas
             docker compose --env-file "$APP_DIR/.env" pull
+
+            # Levantar Mongo antes de migración a auth (puede estar unhealthy sin auth aún)
+            docker compose --env-file "$APP_DIR/.env" up -d mongodb
+
+            # Migrar Mongo a auth si aplica (idempotente)
+            if [ -f "$APP_DIR/scripts/setup-mongo-auth.sh" ] && [ -n "${{ secrets.MONGO_ROOT_PASSWORD }}" ]; then
+              bash "$APP_DIR/scripts/setup-mongo-auth.sh"
+            fi
+
+            # Levantar el resto de servicios
             docker compose --env-file "$APP_DIR/.env" up -d --no-build --force-recreate --remove-orphans
