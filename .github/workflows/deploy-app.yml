@@ -77,6 +77,20 @@ on:
         required: false
       SPACES_ENDPOINT:
         required: false
+      EMAIL_SERVICE:
+        required: false
+      EMAIL_FROM:
+        required: false
+      SMTP_HOST:
+        required: false
+      SMTP_PORT:
+        required: false
+      SMTP_SECURE:
+        required: false
+      SMTP_USER:
+        required: false
+      SMTP_PASSWORD:
+        required: false
 
 jobs:
   build-and-push:
@@ -259,6 +273,14 @@ jobs:
               [ -n "${{ secrets.SPACES_BUCKET }}" ]       && echo "SPACES_BUCKET=${{ secrets.SPACES_BUCKET }}"
               [ -n "${{ secrets.SPACES_REGION }}" ]         && echo "SPACES_REGION=${{ secrets.SPACES_REGION }}"
               [ -n "${{ secrets.SPACES_ENDPOINT }}" ]     && echo "SPACES_ENDPOINT=${{ secrets.SPACES_ENDPOINT }}"
+              echo "EMAIL_SERVICE=${{ secrets.EMAIL_SERVICE || vars.EMAIL_SERVICE || 'godaddy' }}"
+              [ -n "${{ secrets.EMAIL_FROM || vars.EMAIL_FROM }}" ] && echo "EMAIL_FROM=${{ secrets.EMAIL_FROM || vars.EMAIL_FROM }}" || echo "EMAIL_FROM=JACM Time Record <info@jacm.com.mx>"
+              echo "SMTP_HOST=${{ secrets.SMTP_HOST || vars.SMTP_HOST || 'smtpout.secureserver.net' }}"
+              echo "SMTP_PORT=${{ secrets.SMTP_PORT || vars.SMTP_PORT || '465' }}"
+              echo "SMTP_SECURE=${{ secrets.SMTP_SECURE || vars.SMTP_SECURE || 'true' }}"
+              [ -n "${{ secrets.SMTP_USER || vars.SMTP_USER }}" ] && echo "SMTP_USER=${{ secrets.SMTP_USER || vars.SMTP_USER }}"
+              [ -n "${{ secrets.SMTP_PASSWORD }}" ]           && echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}"
+              echo "DUE_ALERT_HOUR=${{ vars.DUE_ALERT_HOUR || '8' }}"
             } > "$APP_DIR/.env"
 
             chmod +x "$APP_DIR/scripts/"*.sh 2>/dev/null || true
