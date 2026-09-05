@@ -1,5 +1,9 @@
 name: Deploy a DigitalOcean
 
+permissions:
+  contents: read
+  pull-requests: read
+
 on:
   push:
     branches:
@@ -20,8 +24,19 @@ on:
         default: 'all'
 
 jobs:
+  # ── Verificar que dev solo reciba merges de PR (protección gratuita) ──
+  verify-dev-source:
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/verify-dev.yml
+
   # ── Detectar qué cambió ──────────────────────────────────
   detect-changes:
+    needs: verify-dev-source
+    if: |
+      always() && (
+        github.event_name == 'workflow_dispatch' ||
+        needs.verify-dev-source.result == 'success'
+      )
     runs-on: ubuntu-latest
     outputs:
       traefik: ${{ steps.filter.outputs.traefik }}

@@ -1,0 +1,38 @@
+# Verificación reutilizable: dev solo recibe merges de Pull Request.
+# Bypass de emergencia: incluir [allow-dev-push] en el mensaje del commit.
+
+name: Verify dev source
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bypass de emergencia
+        if: contains(github.event.head_commit.message, '[allow-dev-push]')
+        run: echo "Bypass activado"
+
+      - name: Verificar merge desde Pull Request
+        if: ${{ !contains(github.event.head_commit.message, '[allow-dev-push]') }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+            });
+            const merged = prs.find((pr) => pr.merged_at);
+            if (merged) {
+              core.info(`Autorizado: merge de PR #${merged.number}`);
+              return;
+            }
+            core.setFailed(
+              'Push directo a dev bloqueado. Abre Pull Request hacia dev antes de desplegar infraestructura.'
+            );
