@@ -117,9 +117,18 @@ jobs:
         env:
           FRONTEND_DOMAIN: ${{ inputs.frontend_domain }}
           BACKEND_DOMAIN: ${{ inputs.backend_domain }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MONGO_ROOT_USERNAME: ${{ secrets.MONGO_ROOT_USERNAME }}
+          MONGO_APP_USERNAME: ${{ secrets.MONGO_APP_USERNAME }}
+          MONGO_ROOT_PASSWORD: ${{ secrets.MONGO_ROOT_PASSWORD }}
+          MONGO_APP_PASSWORD: ${{ secrets.MONGO_APP_PASSWORD }}
         run: |
-          # Las imágenes ya tienen el nombre completo definido en docker-compose.yml
-          # docker compose build + push usa esos nombres directamente
+          # docker compose valida todo el archivo aunque solo se construyan backend/frontend
+          export MONGO_ROOT_USERNAME="${MONGO_ROOT_USERNAME:-jacm_admin}"
+          export MONGO_APP_USERNAME="${MONGO_APP_USERNAME:-jacm_app}"
+          export MONGO_ROOT_PASSWORD="${MONGO_ROOT_PASSWORD:-build-placeholder-not-used}"
+          export MONGO_APP_PASSWORD="${MONGO_APP_PASSWORD:-build-placeholder-not-used}"
+          export JWT_SECRET="${JWT_SECRET:-build-placeholder-not-used}"
           docker compose build
           docker compose push
 
