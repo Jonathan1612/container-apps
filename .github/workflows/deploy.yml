@@ -79,10 +79,8 @@ jobs:
                 -f traefik/docker-compose.yml up -d
             fi
 
-            if [ "${{ needs.detect-changes.outputs.portainer }}" == "true" ] || [ "$TARGET" == "portainer" ] || [ "$TARGET" == "all" ]; then
-              echo "→ Actualizando Portainer..."
-              docker compose --project-directory /opt/container-apps \
-                -f portainer/docker-compose.yml up -d
+            if [ "${{ needs.detect-changes.outputs.portainer }}" == "true" ] || [ "$TARGET" == "portainer" ]; then
+              echo "→ Portainer está fuera de producción. No se vuelve a levantar."
             fi
 
   # ── Desplegar aplicaciones ───────────────────────────────

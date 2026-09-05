@@ -64,9 +64,7 @@ deploy_traefik() {
 }
 
 deploy_portainer() {
-    echo "→ Desplegando Portainer..."
-    docker compose --project-directory "$INSTALL_DIR" \
-        -f "$INSTALL_DIR/portainer/docker-compose.yml" up -d
+    echo "→ Portainer está fuera de producción (se retiró del droplet). Omitido."
 }
 
 # ── Apps desde sus repos Git ───────────────────────────────
