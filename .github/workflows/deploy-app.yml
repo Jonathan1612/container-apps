@@ -123,7 +123,7 @@ jobs:
           echo "✅ Credenciales de deploy encontradas (Secrets o Variables)"
 
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         env:
           GHCR_TOKEN: ${{ github.token }}
         with:
