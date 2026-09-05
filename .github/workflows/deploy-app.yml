@@ -265,10 +265,7 @@ jobs:
             # Pull de imágenes pre-compiladas
             docker compose --env-file "$APP_DIR/.env" pull
 
-            # Levantar Mongo antes de migración a auth (puede estar unhealthy sin auth aún)
-            docker compose --env-file "$APP_DIR/.env" up -d mongodb
-
-            # Migrar Mongo a auth si aplica (idempotente)
+            # Migrar Mongo a auth si aplica (idempotente; no levantar mongo con auth antes)
             if [ -f "$APP_DIR/scripts/setup-mongo-auth.sh" ] && [ -n "${{ secrets.MONGO_ROOT_PASSWORD }}" ]; then
               bash "$APP_DIR/scripts/setup-mongo-auth.sh"
             fi
