@@ -1,0 +1,48 @@
+name: Security Audit
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "🔍 Buscando secretos hardcodeados..."
+          if grep -rE "(password|secret|api[_-]?key)\s*[:=]\s*['\"][^'\"]{8,}" \
+            --include="*.yml" --include="*.yaml" --include="*.sh" --include="*.env*" \
+            --exclude-dir=.git \
+            --exclude="*.example" \
+            .; then
+            echo "⚠️  Posible secreto hardcodeado detectado"
+            exit 1
+          fi
+          echo "✅ No se detectaron secretos hardcodeados"
+
+      - name: Validate Traefik security settings
+        run: |
+          echo "🔍 Validando configuración de Traefik..."
+          grep -q "insecure: false" traefik/traefik.yml || (echo "❌ Traefik dashboard debe estar en insecure: false" && exit 1)
+          grep -q "exposedByDefault: false" traefik/traefik.yml || (echo "❌ exposedByDefault debe ser false" && exit 1)
+          grep -q "no-new-privileges:true" traefik/docker-compose.yml || (echo "❌ Falta no-new-privileges en Traefik" && exit 1)
+          grep -q "secure-headers" traefik/config/middlewares.yml || (echo "❌ Falta middleware secure-headers" && exit 1)
+          grep -q "rate-limit" traefik/config/middlewares.yml || (echo "❌ Falta middleware rate-limit" && exit 1)
+          echo "✅ Configuración de Traefik validada"
+
+      - name: Scan Docker images with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
