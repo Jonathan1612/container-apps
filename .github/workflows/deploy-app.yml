@@ -274,7 +274,11 @@ jobs:
               [ -n "${{ secrets.SPACES_REGION }}" ]         && echo "SPACES_REGION=${{ secrets.SPACES_REGION }}"
               [ -n "${{ secrets.SPACES_ENDPOINT }}" ]     && echo "SPACES_ENDPOINT=${{ secrets.SPACES_ENDPOINT }}"
               echo "EMAIL_SERVICE=${{ secrets.EMAIL_SERVICE || vars.EMAIL_SERVICE || 'godaddy' }}"
-              [ -n "${{ secrets.EMAIL_FROM || vars.EMAIL_FROM }}" ] && echo "EMAIL_FROM=${{ secrets.EMAIL_FROM || vars.EMAIL_FROM }}" || echo "EMAIL_FROM=JACM Time Record <info@jacm.com.mx>"
+              if [ -n "${{ secrets.EMAIL_FROM || vars.EMAIL_FROM }}" ]; then
+                echo "EMAIL_FROM=\"${{ secrets.EMAIL_FROM || vars.EMAIL_FROM }}\""
+              else
+                echo 'EMAIL_FROM="JACM Time Record <info@jacm.com.mx>"'
+              fi
               echo "SMTP_HOST=${{ secrets.SMTP_HOST || vars.SMTP_HOST || 'smtpout.secureserver.net' }}"
               echo "SMTP_PORT=${{ secrets.SMTP_PORT || vars.SMTP_PORT || '465' }}"
               echo "SMTP_SECURE=${{ secrets.SMTP_SECURE || vars.SMTP_SECURE || 'true' }}"
