@@ -248,7 +248,7 @@ jobs:
             # Clonar si no existe, actualizar si ya existe
             if [ ! -d "$APP_DIR" ]; then
               mkdir -p /opt/apps
-              git clone --branch ${{ inputs.branch }} https://github.com/${{ github.repository }}.git "$APP_DIR"
+              git clone --branch ${{ inputs.branch }} git@github.com:${{ github.repository }}.git "$APP_DIR"
             else
               cd "$APP_DIR"
               git fetch origin ${{ inputs.branch }}
