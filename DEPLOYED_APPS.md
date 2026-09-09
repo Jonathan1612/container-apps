@@ -13,6 +13,7 @@ Documentación de las aplicaciones actualmente corriendo en el servidor **104.24
 | **jacm-portafolio** | https://jacm.com.mx | — | ✅ Activo | [Jonathan1612/jacm-portafolio](https://github.com/Jonathan1612/jacm-portafolio) |
 | **plantillas-app** | https://plantillas.jacm.com.mx | https://api.plantillas.jacm.com.mx | ✅ Activo | [Jonathan1612/plantillas-app](https://github.com/Jonathan1612/plantillas-app) |
 | **jacm-time-record** | https://time.jacm.com.mx | https://time-api.jacm.com.mx | ✅ Activo | [Jonathan1612/jacm-time-record](https://github.com/Jonathan1612/jacm-time-record) |
+| **jacm-eventos** | https://enventos.jacm.com.mx | — | ✅ Activo | [Jonathan1612/jacm-eventos](https://github.com/Jonathan1612/jacm-eventos) |
 
 ---
 
