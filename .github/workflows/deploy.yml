@@ -101,11 +101,11 @@ jobs:
   # ── Desplegar aplicaciones ───────────────────────────────
   deploy-apps:
     needs: detect-changes
-    if: |
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.apps == 'true' ||
       needs.detect-changes.outputs.scripts == 'true' ||
-      needs.detect-changes.outputs.workflows == 'true' ||
-      github.event_name == 'workflow_dispatch'
+      needs.detect-changes.outputs.workflows == 'true'
     runs-on: ubuntu-latest
     environment: production
 
