@@ -20,6 +20,19 @@ http:
         permissionsPolicy: "camera=(), microphone=(), geolocation=()"
         customFrameOptionsValue: "SAMEORIGIN"
 
+    # Igual que secure-headers pero permite cámara (apps con escaneo QR)
+    secure-headers-camera:
+      headers:
+        stsSeconds: 63072000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        permissionsPolicy: "camera=(self), microphone=(), geolocation=()"
+        customFrameOptionsValue: "SAMEORIGIN"
+
     # Rate limiting — protección contra abuso
     rate-limit:
       rateLimit:
