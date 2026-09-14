@@ -91,6 +91,16 @@ on:
         required: false
       SMTP_PASSWORD:
         required: false
+      BREVO_API_KEY:
+        required: false
+      CLOUDINARY_URL:
+        required: false
+      CLOUDINARY_CLOUD_NAME:
+        required: false
+      CLOUDINARY_API_KEY:
+        required: false
+      CLOUDINARY_API_SECRET:
+        required: false
 
 jobs:
   build-and-push:
@@ -284,6 +294,21 @@ jobs:
               echo "SMTP_SECURE=${{ secrets.SMTP_SECURE || vars.SMTP_SECURE || 'true' }}"
               [ -n "${{ secrets.SMTP_USER || vars.SMTP_USER }}" ] && echo "SMTP_USER=${{ secrets.SMTP_USER || vars.SMTP_USER }}"
               [ -n "${{ secrets.SMTP_PASSWORD }}" ]           && echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}"
+              if [ -n "${{ secrets.BREVO_API_KEY }}" ]; then
+                echo "BREVO_API_KEY=\"${{ secrets.BREVO_API_KEY }}\""
+              fi
+              if [ -n "${{ secrets.CLOUDINARY_URL }}" ]; then
+                echo "CLOUDINARY_URL=\"${{ secrets.CLOUDINARY_URL }}\""
+              fi
+              if [ -n "${{ secrets.CLOUDINARY_CLOUD_NAME }}" ]; then
+                echo "CLOUDINARY_CLOUD_NAME=\"${{ secrets.CLOUDINARY_CLOUD_NAME }}\""
+              fi
+              if [ -n "${{ secrets.CLOUDINARY_API_KEY }}" ]; then
+                echo "CLOUDINARY_API_KEY=\"${{ secrets.CLOUDINARY_API_KEY }}\""
+              fi
+              if [ -n "${{ secrets.CLOUDINARY_API_SECRET }}" ]; then
+                echo "CLOUDINARY_API_SECRET=\"${{ secrets.CLOUDINARY_API_SECRET }}\""
+              fi
               echo "DUE_ALERT_HOUR=${{ vars.DUE_ALERT_HOUR || '8' }}"
             } > "$APP_DIR/.env"
 
