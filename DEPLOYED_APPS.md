@@ -13,7 +13,7 @@ Documentación de las aplicaciones actualmente corriendo en el servidor **104.24
 | **jacm-portafolio** | https://jacm.com.mx | — | ✅ Activo | [Jonathan1612/jacm-portafolio](https://github.com/Jonathan1612/jacm-portafolio) |
 | **plantillas-app** | https://plantillas.jacm.com.mx | https://api.plantillas.jacm.com.mx | ✅ Activo | [Jonathan1612/plantillas-app](https://github.com/Jonathan1612/plantillas-app) |
 | **jacm-time-record** | https://time.jacm.com.mx | https://time-api.jacm.com.mx | ✅ Activo | [Jonathan1612/jacm-time-record](https://github.com/Jonathan1612/jacm-time-record) |
-| **jacm-eventos** | https://enventos.jacm.com.mx | — | ✅ Activo | [Jonathan1612/jacm-eventos](https://github.com/Jonathan1612/jacm-eventos) |
+| **jacm-carpinteria** | https://carpinteria.jacm.com.mx | — | 🚧 Pendiente primer deploy | [Jonathan1612/jacm-carpinteria](https://github.com/Jonathan1612/jacm-carpinteria) |
 
 ---
 
@@ -110,6 +110,34 @@ Documentación de las aplicaciones actualmente corriendo en el servidor **104.24
 - ✅ Rate limiting
 
 **⚠️ Nota:** MongoDB aparece como `unhealthy` - revisar logs si hay problemas de conexión
+
+---
+
+### 4. jacm-carpinteria
+
+**Descripción:** Portafolio y contacto para carpinteros (público). Planos y cotización solo en `/mi-taller/planos`.
+
+**URLs:**
+- 🌐 **Sitio:** https://carpinteria.jacm.com.mx
+
+**Tecnología:**
+- Next.js 16 + SQLite (Prisma)
+- Fotos en volumen Docker
+- Puerto interno: **3000**
+
+**Deployment:**
+- Rama: `main`
+- Contenedor: `jacm-carpinteria-web-1` (aprox.)
+- Directorio en servidor: `/opt/apps/jacm-carpinteria`
+- Secretos GitHub del repo: `DO_HOST`, `DO_USER`, `DO_SSH_KEY`, **`AUTH_SECRET`** (obligatorio), `SHOP_EMAIL` (opcional)
+
+**Volúmenes persistentes:**
+- `jacm_carpinteria_db` → SQLite
+- `jacm_carpinteria_uploads` → fotos del taller
+
+**DNS:** registro `A` o `CNAME` `carpinteria.jacm.com.mx` → **104.248.126.117** (mismo servidor que el resto).
+
+**Primer arranque:** en el repo, secret `RUN_DB_SEED=true` una vez en `.env` del servidor o variable en compose para cargar taller demo; luego quitar y cambiar contraseña.
 
 ---
 

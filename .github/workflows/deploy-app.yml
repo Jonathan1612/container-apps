@@ -48,6 +48,11 @@ on:
         required: false
         type: boolean
         default: false
+      auth_secret_required:
+        description: 'Fallar si AUTH_SECRET no está configurado (apps Next con sesión)'
+        required: false
+        type: boolean
+        default: false
     secrets:
       DO_HOST:
         required: false
@@ -101,6 +106,10 @@ on:
         required: false
       CLOUDINARY_API_SECRET:
         required: false
+      AUTH_SECRET:
+        required: false
+      SHOP_EMAIL:
+        required: false
 
 jobs:
   build-and-push:
@@ -112,8 +121,12 @@ jobs:
 
     steps:
       - name: Verify required secrets
-        if: inputs.jwt_required || inputs.mongo_required
+        if: inputs.jwt_required || inputs.mongo_required || inputs.auth_secret_required
         run: |
+          if [ "${{ inputs.auth_secret_required }}" = "true" ] && [ -z "${{ secrets.AUTH_SECRET }}" ]; then
+            echo "❌ AUTH_SECRET es obligatorio para esta app pero no está configurado en GitHub Secrets."
+            exit 1
+          fi
           if [ "${{ inputs.jwt_required }}" = "true" ] && [ -z "${{ secrets.JWT_SECRET }}" ]; then
             echo "❌ JWT_SECRET es obligatorio para esta app pero no está configurado en GitHub Secrets."
             exit 1
@@ -142,6 +155,8 @@ jobs:
           FRONTEND_DOMAIN: ${{ inputs.frontend_domain }}
           BACKEND_DOMAIN: ${{ inputs.backend_domain }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          SHOP_EMAIL: ${{ secrets.SHOP_EMAIL }}
           MONGO_ROOT_USERNAME: ${{ secrets.MONGO_ROOT_USERNAME }}
           MONGO_APP_USERNAME: ${{ secrets.MONGO_APP_USERNAME }}
           MONGO_ROOT_PASSWORD: ${{ secrets.MONGO_ROOT_PASSWORD }}
@@ -153,6 +168,8 @@ jobs:
           export MONGO_ROOT_PASSWORD="${MONGO_ROOT_PASSWORD:-build-placeholder-not-used}"
           export MONGO_APP_PASSWORD="${MONGO_APP_PASSWORD:-build-placeholder-not-used}"
           export JWT_SECRET="${JWT_SECRET:-build-placeholder-not-used}"
+          export AUTH_SECRET="${AUTH_SECRET:-build-placeholder-not-used}"
+          export SHOP_EMAIL="${SHOP_EMAIL:-taller@jacm-carpinteria.local}"
           docker compose build
           docker compose push
 
@@ -199,6 +216,10 @@ jobs:
           script: |
             set -e
 
+            if [ "${{ inputs.auth_secret_required }}" = "true" ] && [ -z "${{ secrets.AUTH_SECRET }}" ]; then
+              echo "❌ AUTH_SECRET es obligatorio para esta app pero no está configurado en GitHub Secrets."
+              exit 1
+            fi
             if [ "${{ inputs.jwt_required }}" = "true" ] && [ -z "${{ secrets.JWT_SECRET }}" ]; then
               echo "❌ JWT_SECRET es obligatorio para esta app pero no está configurado en GitHub Secrets."
               exit 1
@@ -258,7 +279,7 @@ jobs:
             # Clonar si no existe, actualizar si ya existe
             if [ ! -d "$APP_DIR" ]; then
               mkdir -p /opt/apps
-              git clone --branch ${{ inputs.branch }} git@github.com:${{ github.repository }}.git "$APP_DIR"
+              git clone --branch ${{ inputs.branch }} https://github.com/${{ github.repository }}.git "$APP_DIR"
             else
               cd "$APP_DIR"
               git fetch origin ${{ inputs.branch }}
@@ -272,6 +293,9 @@ jobs:
               [ -n "${{ inputs.frontend_domain }}" ] && echo "FRONTEND_DOMAIN=${{ inputs.frontend_domain }}"
               [ -n "${{ inputs.backend_domain }}" ]  && echo "BACKEND_DOMAIN=${{ inputs.backend_domain }}"
               [ -n "${{ secrets.JWT_SECRET }}" ]     && echo "JWT_SECRET=${{ secrets.JWT_SECRET }}"
+              [ -n "${{ secrets.AUTH_SECRET }}" ]   && echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}"
+              [ -n "${{ secrets.SHOP_EMAIL }}" ]    && echo "SHOP_EMAIL=${{ secrets.SHOP_EMAIL }}"
+              [ -n "${{ secrets.SHOP_EMAIL }}" ]    || echo "SHOP_EMAIL=taller@jacm-carpinteria.local"
               [ -n "${{ secrets.MONGO_ROOT_USERNAME }}" ] && echo "MONGO_ROOT_USERNAME=${{ secrets.MONGO_ROOT_USERNAME }}"
               [ -n "${{ secrets.MONGO_ROOT_USERNAME }}" ] || echo "MONGO_ROOT_USERNAME=jacm_admin"
               [ -n "${{ secrets.MONGO_APP_USERNAME }}" ]  && echo "MONGO_APP_USERNAME=${{ secrets.MONGO_APP_USERNAME }}"
@@ -292,8 +316,12 @@ jobs:
               echo "SMTP_HOST=${{ secrets.SMTP_HOST || vars.SMTP_HOST || 'smtpout.secureserver.net' }}"
               echo "SMTP_PORT=${{ secrets.SMTP_PORT || vars.SMTP_PORT || '465' }}"
               echo "SMTP_SECURE=${{ secrets.SMTP_SECURE || vars.SMTP_SECURE || 'true' }}"
-              [ -n "${{ secrets.SMTP_USER || vars.SMTP_USER }}" ] && echo "SMTP_USER=${{ secrets.SMTP_USER || vars.SMTP_USER }}"
-              [ -n "${{ secrets.SMTP_PASSWORD }}" ]           && echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}"
+              if [ -n "${{ secrets.SMTP_USER || vars.SMTP_USER }}" ]; then
+                echo "SMTP_USER=\"${{ secrets.SMTP_USER || vars.SMTP_USER }}\""
+              fi
+              if [ -n "${{ secrets.SMTP_PASSWORD }}" ]; then
+                echo "SMTP_PASSWORD=\"${{ secrets.SMTP_PASSWORD }}\""
+              fi
               if [ -n "${{ secrets.BREVO_API_KEY }}" ]; then
                 echo "BREVO_API_KEY=\"${{ secrets.BREVO_API_KEY }}\""
               fi

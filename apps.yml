@@ -26,7 +26,7 @@ apps:
   - name: plantillas-app
     repo: git@github.com:Jonathan1612/plantillas-app.git
     branch: dev
-    enabled: false
+    enabled: true
     # URLs: 
     #   Frontend: https://plantillas.jacm.com.mx
     #   Backend:  https://api.plantillas.jacm.com.mx
@@ -44,6 +44,13 @@ apps:
     # URLs: 
     #   Frontend: https://time.jacm.com.mx
     #   Backend:  https://time-api.jacm.com.mx
+
+  - name: jacm-carpinteria
+    repo: git@github.com:Jonathan1612/jacm-carpinteria.git
+    branch: main
+    enabled: true
+    # URL: https://carpinteria.jacm.com.mx
+    # Secrets en GitHub del repo: DO_*, AUTH_SECRET, SHOP_EMAIL (opcional)
 
   - name: jacm-eventos
     repo: git@github.com:Jonathan1612/jacm-eventos.git
